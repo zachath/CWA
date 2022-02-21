@@ -1,6 +1,7 @@
 //Michael Foussianis and Zacharias Thorell
 //2022
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -21,7 +22,7 @@ public class CWA<T> implements Iterable<T> {
     private volatile Object[] array;
 
     public CWA() {
-        throw new IllegalStateException("Not implemented");
+        array = new Object[0];
     }
 
     /**
@@ -32,7 +33,14 @@ public class CWA<T> implements Iterable<T> {
      * @return true.
      */
     public boolean add(T element) {
-        throw new IllegalStateException("Not implemented");
+        synchronized (lock) {
+            Object[] newArray = array;
+            int length = newArray.length;
+            newArray = Arrays.copyOf(newArray, length+1); //Är detta en optimering?
+            newArray[length] = element;
+            array = newArray;
+            return true;
+        }
     }
 
     /**
