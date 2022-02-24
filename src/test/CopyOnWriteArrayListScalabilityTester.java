@@ -2,9 +2,7 @@
 
 package test;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -27,17 +25,23 @@ public class CopyOnWriteArrayListScalabilityTester {
     private static int iterationPercentage;
     private static int addPercentage;
     private static int removePercentage;
+    private static int numberOfThreads;
 
     /*
-    * Execute by:   java test.CopyOnWriteArrayListScalabilityTester [2 to the power of X elements] [Lookup percentage] [Iteration Percentage] [Add Percentage] [Remove Percentage]
-    * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16
+    * Execute by:   java test.CopyOnWriteArrayListScalabilityTester [2 to the power of X elements] [Lookup percentage] [Iteration Percentage] [Add Percentage] [Remove Percentage] [Number of threads/cores]
+    * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16 4
     * Should NOT be done from inside the package test.
     */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
+
         getTestSettings(args);
 
         //warmup
-        System.out.println(operations);
+
+        generateOperationSequence();
+
+        warmup();
+        System.out.println("Finished warmup");
 
         runTest();
     }
@@ -54,6 +58,7 @@ public class CopyOnWriteArrayListScalabilityTester {
             iterationPercentage = Integer.parseInt(args[2]);
             addPercentage = Integer.parseInt(args[3]);
             removePercentage = Integer.parseInt(args[4]);
+            numberOfThreads = Integer.parseInt(args[5]);
 
             if (lookupPercentage + iterationPercentage + addPercentage + removePercentage != 100) {
                 System.out.println("Percentages are not correct");
@@ -65,10 +70,11 @@ public class CopyOnWriteArrayListScalabilityTester {
             System.exit(0);
         }
 
-        System.out.println("Number of elements: " + numberOfElements);
+        /*System.out.println("Number of elements: " + numberOfElements);
         System.out.println("Lookup: " + lookupPercentage + "%");
         System.out.println("Iteration: " + iterationPercentage + "%");
         System.out.println("Modification: " + (addPercentage + removePercentage) + "%");
+        System.out.println("Number of threads: " + numberOfThreads);*/
     }
 
     /**
@@ -92,6 +98,25 @@ public class CopyOnWriteArrayListScalabilityTester {
             operations.add(Operations.REMOVE);
         }
         Collections.shuffle(operations);
+    }
+
+    private static void testMethodToBeCompiled() {
+        int total = 0;
+        int old = 0;
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < 100000; i++) {
+            list.add(i+old);
+            old = i;
+        }
+
+        for (Integer i : list) {
+            total += i;
+        }
+        System.out.println(total);
+    }
+
+    private static void warmup() {
+        runTest();
     }
 
     private static void runTest() {
