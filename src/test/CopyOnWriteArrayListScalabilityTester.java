@@ -29,7 +29,7 @@ public class CopyOnWriteArrayListScalabilityTester {
     private final static int runTime = 1000;
 
     //Stores all test results, reset after warmup.
-    private static List<TestResult> testResults = new ArrayList<>();
+    private static final List<TestResult> testResults = new ArrayList<>();
 
     //The operations to be performed.
     //private static List<Operations> operations = new ArrayList<>();
@@ -42,11 +42,12 @@ public class CopyOnWriteArrayListScalabilityTester {
     private static int removePercentage;
     private static int numberOfThreads;
     private static int testIterations;
-    private static String testName;
+    private static String fileName;
+    private static String dirName;
 
     /*
-    * Execute by:   java test.CopyOnWriteArrayListScalabilityTester [2 to the power of X elements] [Lookup percentage] [Iteration Percentage] [Add Percentage] [Remove Percentage] [Number of threads/cores] [Test Iterations] [Name of test]
-    * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16 4 10 testCase
+    * Execute by:   java test.CopyOnWriteArrayListScalabilityTester [2 to the power of X elements] [Lookup percentage] [Iteration Percentage] [Add Percentage] [Remove Percentage] [Number of threads/cores] [Test Iterations]
+    * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16 4 10
     * Should NOT be done from inside the package test.
     */
     public static void main(String[] args) {
@@ -56,7 +57,7 @@ public class CopyOnWriteArrayListScalabilityTester {
         warmup();
 
         System.out.println("Starting Tests");
-        System.out.println(testName);
+        System.out.println(fileName);
         System.out.println("Tests Complete");
 
         runTest(true);
@@ -76,7 +77,8 @@ public class CopyOnWriteArrayListScalabilityTester {
             removePercentage = Integer.parseInt(args[4]);
             numberOfThreads = Integer.parseInt(args[5]);
             testIterations = Integer.parseInt(args[6]);
-            testName = args[7];
+            dirName = lookupPercentage + "%Look-" + iterationPercentage + "%Iter-" + (addPercentage + removePercentage) + "%Mod-" + numberOfElements + "Elements-";
+            fileName = dirName + numberOfThreads + "Threads";
 
             if (lookupPercentage + iterationPercentage + addPercentage + removePercentage != 100) {
                 throw new IllegalStateException("Percentages are not correct");
@@ -186,7 +188,7 @@ public class CopyOnWriteArrayListScalabilityTester {
 
             System.out.println("Test " + i + " Complete");
 
-            testResults.add(new TestResult(testName, totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
+            testResults.add(new TestResult(fileName, dirName, totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
 
             resetDataStructure();
             threads.clear();
@@ -212,13 +214,12 @@ public class CopyOnWriteArrayListScalabilityTester {
         }
 
         /**
-         * Gets the element specified by index.
+         * Gets the element specified by random int.
          * to avoid dead code elimination the hashcode of value is compared to
          * the current time.
-         * @param index of the element to lookup.
          */
-        private void lookup(int index) {
-            Integer value = CWA.get(index);
+        private void lookup() {
+            Integer value = CWA.get(random.nextInt(CWA.size() - 1));
 
             //Dead code elimination as per Goetz et. al 2006
             if (value.hashCode() == System.nanoTime()) {
@@ -250,25 +251,14 @@ public class CopyOnWriteArrayListScalabilityTester {
                 //Iterates through the list using modulus.
                 Operations operation = operations.get(totalOperations % operations.size());
 
-                int randomValue = 0;
-                int size = CWA.size();
-                try {
-                    randomValue = random.nextInt(size);
-                } catch (IllegalArgumentException e) {
-                    System.out.println("Print: " + CWA.size());
-                    System.out.println(size);
-                    e.printStackTrace();
-                    System.exit(0);
-                }
-
                 if (operation == Operations.LOOKUP) {
-                    lookup(randomValue);
+                    lookup();
                 }
                 else if (operation == Operations.ADD) {
-                    CWA.add(randomValue);
+                    CWA.add(random.nextInt(CWA.size() - 1));
                 }
                 else if (operation == Operations.REMOVE) {
-                    CWA.remove(randomValue);
+                    CWA.remove(random.nextInt(CWA.size() - 1));
                 }
                 else if (operation == Operations.ITERATE) {
                     iterate();

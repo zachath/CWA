@@ -18,10 +18,11 @@ public class TestResult implements Comparable<TestResult> {
 
     public final int totalOperations, threadCount, elementCount, lookupPercentage, iterationPercentage, addPercentage, removePercentage;
     public final long throughput;
-    public final String testName;
+    public final String testName, dirName;
 
-    public TestResult(String testName, int totalOperations, long totalTime, int threadCount, int elementCount, int lookupPercentage, int iterationPercentage, int addPercentage, int removePercentage) {
+    public TestResult(String testName, String dirName, int totalOperations, long totalTime, int threadCount, int elementCount, int lookupPercentage, int iterationPercentage, int addPercentage, int removePercentage) {
         this.testName = testName;
+        this.dirName = dirName;
         this.totalOperations = totalOperations;
         this.threadCount = threadCount;
         this.elementCount = elementCount;
@@ -33,30 +34,10 @@ public class TestResult implements Comparable<TestResult> {
     }
 
     /**
-     * Returns the average throughput of the list.
-     * @param resultList as input.
-     * @return average of resultList.
+     * Creates the specified file. If not possible for any reason (e.g. it already exists) an exception is thrown.
+     * @param file to create.
+     * @throws Exception File could not be created.
      */
-    public static long getAverageThroughput(List<TestResult> resultList) {
-        long total = 0;
-        for (TestResult result : resultList) {
-            total += result.throughput;
-        }
-        return total / resultList.size();
-    }
-
-    /**
-     * Returns the median throughput of the list.
-     * @param resultList as input.
-     * @return median of resultList.
-     */
-    public static long getMedianThroughput(List<TestResult> resultList) {
-        List<TestResult> sortedList = new ArrayList<>(resultList);
-        Collections.sort(sortedList);
-
-        return (sortedList.get(sortedList.size()/2).throughput + sortedList.get(sortedList.size()/2 - 1).throughput)/2;
-    }
-
     public static void createFile(File file) {
         try {
             if (!file.createNewFile()) {
@@ -68,18 +49,32 @@ public class TestResult implements Comparable<TestResult> {
         }
     }
 
+    /**
+     * Creates the specified directory.
+     * @param dir to create.
+     */
+    public static void createDirectory(File dir) {
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+    }
+
+    /**
+     * Save the results of the test to a single .csv file.
+     * @param resultList list of result.
+     */
     public static void createCSV(List<TestResult> resultList) {
 
-        //Hardcoded path pls remove
-        String fileName = "..\\results\\" + resultList.get(0).testName + ".csv";
-        //System.out.println(fileName);
+        String dirName = "..\\results\\" + resultList.get(0).dirName;
+        String fileName = "..\\results\\" + dirName + "\\" + resultList.get(0).testName + ".csv";
+
+        createDirectory(new File(dirName));
 
         File file = new File(fileName);
         createFile(file);
 
         try (PrintWriter writer = new PrintWriter(file)) {
             StringBuilder builder = new StringBuilder();
-            //builder.append("id,");
             builder.append("Thread Count,");
             builder.append("Element Count,");
             builder.append("Throughput,");
