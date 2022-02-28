@@ -11,8 +11,8 @@ public class CSVCreator {
 
     public CSVCreator(String dirName, String fileName, List<TestResult> resultList) {
         this.resultList = resultList;
-        this.dirName = "..\\results\\" + dirName;
-        this.filePath = "..\\results\\" + this.dirName + "\\" + fileName + ".csv";
+        this.dirName = "results\\" + dirName;
+        this.filePath = this.dirName + "\\" + fileName + ".csv";
     }
 
     /**
@@ -37,7 +37,6 @@ public class CSVCreator {
      */
     public void createDirectory(File dir) {
         if (!dir.exists()) {
-            System.out.println("directory created");
             dir.mkdir();
         }
     }
@@ -66,7 +65,6 @@ public class CSVCreator {
 
             int i = 0;
             for (TestResult result : resultList) {
-                builder.append(i).append(",");
                 builder.append(result.threadCount).append(",");
                 builder.append(result.elementCount).append(",");
                 builder.append(result.throughput).append(",");

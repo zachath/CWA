@@ -14,12 +14,10 @@ import java.util.stream.Stream;
  * Container class for the results of tests.
  */
 public class TestResult implements Comparable<TestResult> {
-    private static final String DIRECTORY = "../../results/";
-
     public final int totalOperations, threadCount, elementCount, lookupPercentage, iterationPercentage, addPercentage, removePercentage;
     public final long throughput;
 
-    public TestResult(String testName, String dirName, int totalOperations, long totalTime, int threadCount, int elementCount, int lookupPercentage, int iterationPercentage, int addPercentage, int removePercentage) {
+    public TestResult(int totalOperations, long totalTime, int threadCount, int elementCount, int lookupPercentage, int iterationPercentage, int addPercentage, int removePercentage) {
         this.totalOperations = totalOperations;
         this.threadCount = threadCount;
         this.elementCount = elementCount;

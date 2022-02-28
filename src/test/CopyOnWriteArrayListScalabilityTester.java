@@ -74,8 +74,8 @@ public class CopyOnWriteArrayListScalabilityTester {
             removePercentage = Integer.parseInt(args[4]);
             numberOfThreads = Integer.parseInt(args[5]);
             testIterations = Integer.parseInt(args[6]);
-            dirName = lookupPercentage + "%Look-" + iterationPercentage + "%Iter-" + (addPercentage + removePercentage) + "%Mod-" + numberOfElements + "Elements-";
-            fileName = dirName + numberOfThreads + "Threads";
+            dirName = lookupPercentage + "%Look-" + iterationPercentage + "%Iter-" + (addPercentage + removePercentage) + "%Mod-" + numberOfElements + "Elements";
+            fileName = dirName + "-" + numberOfThreads + "Threads";
 
             if (lookupPercentage + iterationPercentage + addPercentage + removePercentage != 100) {
                 throw new IllegalStateException("Percentages are not correct");
@@ -183,9 +183,9 @@ public class CopyOnWriteArrayListScalabilityTester {
             }
 
 
-            System.out.println("Test " + i + " Completee");
+            System.out.println("Test " + i + " Complete");
 
-            testResults.add(new TestResult(fileName, dirName, totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
+            testResults.add(new TestResult(totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
 
             resetDataStructure();
             threads.clear();
