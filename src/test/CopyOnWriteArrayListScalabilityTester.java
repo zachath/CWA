@@ -1,8 +1,6 @@
 //Part of the bachelor thesis work by Michael Foussianis and Zacharias Thorell.
 //Based on the test program by Emterfors and Sander.
-
 package test;
-
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,7 +49,6 @@ public class CopyOnWriteArrayListScalabilityTester {
     * Should NOT be done from inside the package test.
     */
     public static void main(String[] args) {
-
         getTestSettings(args);
 
         warmup();
@@ -186,7 +183,7 @@ public class CopyOnWriteArrayListScalabilityTester {
             }
 
 
-            System.out.println("Test " + i + " Complete");
+            System.out.println("Test " + i + " Completee");
 
             testResults.add(new TestResult(fileName, dirName, totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
 
@@ -196,7 +193,8 @@ public class CopyOnWriteArrayListScalabilityTester {
         }
 
         if (writeToFile) {
-            TestResult.createCSV(testResults);
+            CSVCreator csvCreator = new CSVCreator(dirName, fileName, testResults);
+            csvCreator.createCSV();
         }
     }
 
