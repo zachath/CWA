@@ -26,7 +26,7 @@ public class CopyOnWriteArrayListScalabilityTester {
     private volatile static boolean testIsFinished;
 
     //Runtime of tests
-    private final static int runTime = 10000;
+    private final static int runTime = 1000;
 
     //Stores all test results, reset after warmup.
     private static List<TestResult> testResults = new ArrayList<>();
@@ -46,7 +46,7 @@ public class CopyOnWriteArrayListScalabilityTester {
 
     /*
     * Execute by:   java test.CopyOnWriteArrayListScalabilityTester [2 to the power of X elements] [Lookup percentage] [Iteration Percentage] [Add Percentage] [Remove Percentage] [Number of threads/cores] [Test Iterations] [Name of test]
-    * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16 4 10 34%Lookup33%Iteration33%Modification4Cores
+    * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16 4 10 testCase
     * Should NOT be done from inside the package test.
     */
     public static void main(String[] args) {
@@ -54,14 +54,12 @@ public class CopyOnWriteArrayListScalabilityTester {
         getTestSettings(args);
 
         warmup();
-        testResults.clear();
-        System.out.println("Finished warmup");
 
         System.out.println("Starting Tests");
         System.out.println(testName);
         System.out.println("Tests Complete");
 
-        runTest();
+        runTest(true);
     }
 
     /**
@@ -120,7 +118,10 @@ public class CopyOnWriteArrayListScalabilityTester {
      * The entire test program is run once to ensure dynamic compilation, results are discarded and test reset afterwards.
      */
     private static void warmup() {
-        runTest();
+        System.out.println("Starting Warmup");
+        runTest(false);
+        testResults.clear();
+        System.out.println("Finished Warmup");
     }
 
     /**
@@ -130,7 +131,7 @@ public class CopyOnWriteArrayListScalabilityTester {
     private static void resetDataStructure() {
         CWA = new CopyOnWriteArrayList<>();
         System.gc();
-        testIsFinished = false;
+        //testIsFinished = false;
     }
 
     /**
@@ -141,11 +142,10 @@ public class CopyOnWriteArrayListScalabilityTester {
      * to false and the threads terminate. The amount of totalOperations is tallied up and
      * a TestResult instance is created for every test. Finally, the test is reset.
      */
-    private static void runTest() {
-        int totalOperations = 0;
-
+    private static void runTest(boolean writeToFile) {
         for (int i = 0; i < testIterations; i++) {
             System.out.println("Test " + i);
+            int totalOperations = 0;
 
             for (int j = 0; j < numberOfElements; j++) {
                 CWA.add(j);
@@ -168,7 +168,11 @@ public class CopyOnWriteArrayListScalabilityTester {
 
             try {
                 Thread.sleep(runTime);
-                testIsFinished = true;
+                //testIsFinished = true;
+                for (Thread thread : threads) {
+                    thread.interrupt();
+                }
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -180,11 +184,17 @@ public class CopyOnWriteArrayListScalabilityTester {
             }
 
 
-            System.out.println("Test [" + i + "] Complete");
+            System.out.println("Test " + i + " Complete");
 
-            testResults.add(new TestResult(totalOperations, totalTime, numberOfThreads, numberOfElements));
+            testResults.add(new TestResult(testName, totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
 
             resetDataStructure();
+            threads.clear();
+            workers.clear();
+        }
+
+        if (writeToFile) {
+            TestResult.createCSV(testResults);
         }
     }
 
@@ -236,11 +246,20 @@ public class CopyOnWriteArrayListScalabilityTester {
          */
         @Override
         public void run() {
-            while (!testIsFinished) {
+            while (!Thread.currentThread().isInterrupted()) {
                 //Iterates through the list using modulus.
                 Operations operation = operations.get(totalOperations % operations.size());
 
-                int randomValue = random.nextInt(operations.size() - 1);
+                int randomValue = 0;
+                int size = CWA.size();
+                try {
+                    randomValue = random.nextInt(size);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Print: " + CWA.size());
+                    System.out.println(size);
+                    e.printStackTrace();
+                    System.exit(0);
+                }
 
                 if (operation == Operations.LOOKUP) {
                     lookup(randomValue);
