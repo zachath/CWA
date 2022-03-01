@@ -29,9 +29,6 @@ public class CopyOnWriteArrayListScalabilityTester {
     //Stores all test results, reset after warmup.
     private static final List<TestResult> testResults = new ArrayList<>();
 
-    //The operations to be performed.
-    //private static List<Operations> operations = new ArrayList<>();
-
     //In order of command line input.
     private static int numberOfElements;
     private static int lookupPercentage;
@@ -46,6 +43,7 @@ public class CopyOnWriteArrayListScalabilityTester {
     /*
     * Execute by:   java test.CopyOnWriteArrayListScalabilityTester [2 to the power of X elements] [Lookup percentage] [Iteration Percentage] [Add Percentage] [Remove Percentage] [Number of threads/cores] [Test Iterations]
     * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16 4 10
+    *               java -verbose:gc -server -Xms4096M -Xmx6144M test.CopyOnWriteArrayListScalabilityTester 17 34 33 17 16 4 10
     * Should NOT be done from inside the package test.
     */
     public static void main(String[] args) {

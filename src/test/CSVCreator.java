@@ -11,8 +11,8 @@ public class CSVCreator {
 
     public CSVCreator(String dirName, String fileName, List<TestResult> resultList) {
         this.resultList = resultList;
-        this.dirName = "results\\" + dirName;
-        this.filePath = this.dirName + "\\" + fileName + ".csv";
+        this.dirName = "..\\results\\" + dirName;
+        this.filePath = "..\\results\\" + this.dirName + "\\" + fileName + ".csv";
     }
 
     /**
