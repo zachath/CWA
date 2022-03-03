@@ -55,7 +55,7 @@ public class CopyOnWriteArrayListScalabilityTester {
         System.out.println(fileName);
         System.out.println("Tests Complete");
 
-        runTest(true);
+        runTest(false);
     }
 
     /**
@@ -116,7 +116,7 @@ public class CopyOnWriteArrayListScalabilityTester {
      */
     private static void warmup() {
         System.out.println("Starting Warmup");
-        runTest(false);
+        runTest(true);
         testResults.clear();
         System.out.println("Finished Warmup");
     }
@@ -128,7 +128,6 @@ public class CopyOnWriteArrayListScalabilityTester {
     private static void resetDataStructure() {
         CWA = new CopyOnWriteArrayList<>();
         System.gc();
-        //testIsFinished = false;
     }
 
     /**
@@ -139,9 +138,13 @@ public class CopyOnWriteArrayListScalabilityTester {
      * to false and the threads terminate. The amount of totalOperations is tallied up and
      * a TestResult instance is created for every test. Finally, the test is reset.
      */
-    private static void runTest(boolean writeToFile) {
+    private static void runTest(boolean warmUp) {
         for (int i = 0; i < testIterations; i++) {
-            System.out.println("Test " + i);
+
+            if (!warmUp) {
+                System.out.println("Test " + i);
+            }
+
             int totalOperations = 0;
 
             for (int j = 0; j < numberOfElements; j++) {
@@ -180,8 +183,9 @@ public class CopyOnWriteArrayListScalabilityTester {
                 totalOperations += worker.totalOperations;
             }
 
-
-            System.out.println("Test " + i + " Complete");
+            if (!warmUp) {
+                System.out.println("Test " + i + " Complete");
+            }
 
             testResults.add(new TestResult(totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
 
@@ -190,7 +194,7 @@ public class CopyOnWriteArrayListScalabilityTester {
             workers.clear();
         }
 
-        if (writeToFile) {
+        if (!warmUp) {
             CSVCreator csvCreator = new CSVCreator(dirName, fileName, testResults);
             csvCreator.createCSV();
         }
