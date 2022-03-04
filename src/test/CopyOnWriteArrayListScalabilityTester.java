@@ -20,11 +20,8 @@ public class CopyOnWriteArrayListScalabilityTester {
     //The data structure to be used throughout the test.
     private static CopyOnWriteArrayList<Integer> CWA = new CopyOnWriteArrayList<>();
 
-    //Used as flag to signal the workers that they should terminate.
-    private volatile static boolean testIsFinished;
-
-    //Runtime of tests
-    private final static int runTime = 1000;
+    //Runtime of tests (10 seconds).
+    private final static int runTime = 10000;
 
     //Stores all test results, reset after warmup.
     private static final List<TestResult> testResults = new ArrayList<>();
@@ -37,13 +34,13 @@ public class CopyOnWriteArrayListScalabilityTester {
     private static int removePercentage;
     private static int numberOfThreads;
     private static int testIterations;
+    private static int warmupIterations;
     private static String fileName;
     private static String dirName;
 
     /*
     * Execute by:   java test.CopyOnWriteArrayListScalabilityTester [2 to the power of X elements] [Lookup percentage] [Iteration Percentage] [Add Percentage] [Remove Percentage] [Number of threads/cores] [Test Iterations]
-    * Example:      java test.CopyOnWriteArrayListScalabilityTester 14 34 33 17 16 4 10
-    *               java -verbose:gc -server -Xms4096M -Xmx6144M test.CopyOnWriteArrayListScalabilityTester 17 34 33 17 16 4 10
+    * Example:      java -server -Xms4096M -Xmx6144M test.CopyOnWriteArrayListScalabilityTester 17 34 33 17 16 4 10
     * Should NOT be done from inside the package test.
     */
     public static void main(String[] args) {
@@ -51,11 +48,11 @@ public class CopyOnWriteArrayListScalabilityTester {
 
         warmup();
 
-        System.out.println("Starting Tests");
-        System.out.println(fileName);
-        System.out.println("Tests Complete");
+        System.out.println("Running Tests");
 
-        runTest(false);
+        runTest(false, testIterations);
+
+        System.out.println("Tests Complete");
     }
 
     /**
@@ -72,6 +69,7 @@ public class CopyOnWriteArrayListScalabilityTester {
             removePercentage = Integer.parseInt(args[4]);
             numberOfThreads = Integer.parseInt(args[5]);
             testIterations = Integer.parseInt(args[6]);
+            warmupIterations = testIterations / 2;
             dirName = lookupPercentage + "%Look-" + iterationPercentage + "%Iter-" + (addPercentage + removePercentage) + "%Mod-" + numberOfElements + "Elements";
             fileName = dirName + "-" + numberOfThreads + "Threads";
 
@@ -115,15 +113,14 @@ public class CopyOnWriteArrayListScalabilityTester {
      * The entire test program is run once to ensure dynamic compilation, results are discarded and test reset afterwards.
      */
     private static void warmup() {
-        System.out.println("Starting Warmup");
-        runTest(true);
+        System.out.println("Running Warmup");
+        runTest(true, warmupIterations);
         testResults.clear();
         System.out.println("Finished Warmup");
     }
 
     /**
-     * Resets the tests by creating a new instance of the CWA, calling garbage collection and setting the testIsFinished
-     * flag to true.
+     * Resets the tests by creating a new instance of the CWA, calling garbage collection.
      */
     private static void resetDataStructure() {
         CWA = new CopyOnWriteArrayList<>();
@@ -138,7 +135,7 @@ public class CopyOnWriteArrayListScalabilityTester {
      * to false and the threads terminate. The amount of totalOperations is tallied up and
      * a TestResult instance is created for every test. Finally, the test is reset.
      */
-    private static void runTest(boolean warmUp) {
+    private static void runTest(boolean warmUp, int testIterations) {
         for (int i = 0; i < testIterations; i++) {
 
             if (!warmUp) {
@@ -168,7 +165,6 @@ public class CopyOnWriteArrayListScalabilityTester {
 
             try {
                 Thread.sleep(runTime);
-                //testIsFinished = true;
                 for (Thread thread : threads) {
                     thread.interrupt();
                 }
