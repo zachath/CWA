@@ -214,8 +214,8 @@ public class CopyOnWriteArrayListScalabilityTester {
          * to avoid dead code elimination the hashcode of value is compared to
          * the current time.
          */
-        private void lookup() {
-            Integer value = CWA.get(random.nextInt(CWA.size() - 1));
+        private void lookup(int randomValue) {
+            Integer value = CWA.get(randomValue);
 
             //Dead code elimination as per Goetz et. al 2006
             if (value.hashCode() == System.nanoTime()) {
@@ -247,14 +247,16 @@ public class CopyOnWriteArrayListScalabilityTester {
                 //Iterates through the list using modulus.
                 Operations operation = operations.get(totalOperations % operations.size());
 
+                int randomValue = random.nextInt(numberOfElements - (numberOfElements/2));
+
                 if (operation == Operations.LOOKUP) {
-                    lookup();
+                    lookup(randomValue);
                 }
                 else if (operation == Operations.ADD) {
-                    CWA.add(random.nextInt(CWA.size() - 1));
+                    CWA.add(randomValue);
                 }
                 else if (operation == Operations.REMOVE) {
-                    CWA.remove(random.nextInt(CWA.size() - 1));
+                    CWA.remove(randomValue);
                 }
                 else if (operation == Operations.ITERATE) {
                     iterate();
