@@ -3,13 +3,13 @@
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Self implemented version of the CopyOnWriteArrayList.
  * Implements only the Iterable interface since the only operations of interest are modification (add/remove) and
  * iteration.
- * Based upon: {@link java.util.concurrent.CopyOnWriteArrayList}
  * OpenJDK GitHub: https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java
  * @param <T> Type the CWA contains.
  */
@@ -25,6 +25,15 @@ public class CWA<T> implements Iterable<T> {
         array = new Object[0];
     }
 
+    @SuppressWarnings("unchecked")
+    public T get(int index) {
+        return (T) array[index];
+    }
+
+    public int size() {
+        return array.length;
+    }
+
     /**
      * Adds the specified element to the list by locking it from other threads and adding to a "fresh copy of the array"
      * as not to interrupt operations of other threads.
@@ -36,7 +45,7 @@ public class CWA<T> implements Iterable<T> {
         synchronized (lock) {
             Object[] newArray = array;
             int length = newArray.length;
-            newArray = Arrays.copyOf(newArray, length+1); //Är detta en optimering?
+            newArray = Arrays.copyOf(newArray, length+1);
             newArray[length] = element;
             array = newArray;
             return true;
@@ -51,25 +60,59 @@ public class CWA<T> implements Iterable<T> {
      * @return the element that was removed from the list.
      * @throws IndexOutOfBoundsException if index lies outside the bounds of the list.
      */
+    @SuppressWarnings("unchecked")
     public T remove(int index) {
-        throw new IllegalStateException("Not implemented");
+        synchronized (lock) {
+            Object[] newArray = array;
+            int length = newArray.length;
+            T oldValue = (T) newArray[index];
+
+            int amountMoved = length - index - 1;
+            Object[] newElements;
+            if (amountMoved == 0) {
+                newElements = Arrays.copyOf(newArray, length - 1);
+            }
+            else {
+                newElements = new Object[length - 1];
+                System.arraycopy(newArray, 0, newElements, 0, index);
+                System.arraycopy(newArray, index + 1, newElements, index, amountMoved);
+            }
+            array = newElements;
+            return oldValue;
+        }
     }
 
     @Override
     public Iterator<T> iterator() {
-        return new CWAIterator();
+        Object[] newArray = new Object[size()];
+        System.arraycopy(array, 0, newArray, 0, size());
+        return new CWAIterator<>(newArray, 0);
     }
 
-    private class CWAIterator implements Iterator<T> {
+    private final static class CWAIterator<T> implements Iterator<T> {
+        /** Snapshot of the array */
+        private final Object[] snapshot;
 
-        @Override
-        public boolean hasNext() {
-            throw new IllegalStateException("Not implemented");
+        /** Index of element to be returned by subsequent call to next.  */
+        private int cursor;
+
+        CWAIterator(Object[] snapshot, int cursor) {
+            this.snapshot = snapshot;
+            this.cursor = cursor;
         }
 
         @Override
+        public boolean hasNext() {
+            return cursor < snapshot.length;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
         public T next() {
-            throw new IllegalStateException("Not implemented");
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            return (T) snapshot[cursor++];
         }
     }
 }
