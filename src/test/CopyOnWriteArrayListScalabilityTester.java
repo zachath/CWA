@@ -6,19 +6,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import own.CWA;
+import own.CWALocks;
 
 /**
  * Function:    Tests the throughput of the CopyOnWriteArrayList with varying set of work, operations and resources.
  *
  * Thesis:      The reason for this being part of the thesis is to make sure that the program developed by Emterfors &
- *              Sander and later by Bergman & El-Khadri, does not contain any bugs that may have resulted in the
+ *              Sander, does not contain any bugs that may have resulted in the
  *              scalability issues with the CopyOnWriteArrayList.
  */
 public class CopyOnWriteArrayListScalabilityTester {
 
     //The data structure to be used throughout the test.
-    private static CWA<Integer> CWA = new CWA<>();
+    private static CWALocks<Integer> CWA = new CWALocks<>();
 
     //Runtime of tests (10 seconds).
     private final static int runTime = 10000;
@@ -123,7 +123,7 @@ public class CopyOnWriteArrayListScalabilityTester {
      * Resets the tests by creating a new instance of the own.CWA, calling garbage collection.
      */
     private static void resetDataStructure() {
-        CWA = new CWA<>();
+        CWA = new CWALocks<>();
         System.gc();
     }
 
