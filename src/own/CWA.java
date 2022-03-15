@@ -1,69 +1,75 @@
-//Michael Foussianis and Zacharias Thorell
+package own;//Michael Foussianis and Zacharias Thorell
 //2022
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Self implemented version of the CopyOnWriteArrayList.
- * Implements only the Iterable interface since the only operations of interest are modification (add/remove) and
- * iteration.
  * OpenJDK GitHub: https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java
- * @param <T> Type the CWA contains.
+ * @param <T> Type the own.CWA contains.
  */
-public class CWA<T> implements Iterable<T> {
+public class CWA<T> implements CWASubset<T> {
+    //Private lock.
+    private transient final Object lock = new Object();
 
-    //Private intrinsic lock.
-    private final Object lock = new Object();
+    //The array of objects, only accessed via setArray() and getArray().
+    private transient volatile Object[] array;
 
-    //The array of objects, volatile to ensure that updates propagate predictably to other threads.
-    private volatile Object[] array;
+    private Object[] getArray() {
+        return array;
+    }
+
+    private void setArray(Object[] arr) {
+        array = arr;
+    }
 
     public CWA() {
-        array = new Object[0];
+        setArray(new Object[0]);
     }
 
     @SuppressWarnings("unchecked")
     public T get(int index) {
-        return (T) array[index];
+        return (T) getArray()[index];
     }
 
     public int size() {
-        return array.length;
+        return getArray().length;
     }
 
     /**
-     * Adds the specified element to the list by locking it from other threads and adding to a "fresh copy of the array"
+     * Adds the specified element to the list by locking it from other threads and adding to a fresh copy of the array
      * as not to interrupt operations of other threads.
      *
      * @param element to be added to the list.
      * @return true.
      */
+    @Override
     public boolean add(T element) {
         synchronized (lock) {
-            Object[] newArray = array;
-            int length = newArray.length;
-            newArray = Arrays.copyOf(newArray, length+1);
-            newArray[length] = element;
-            array = newArray;
+            Object[] es = getArray();
+            int len = es.length;
+            es = Arrays.copyOf(es, len + 1);
+            es[len] = element;
+            setArray(es);
             return true;
         }
     }
 
     /**
      * Removes the element of the specified index in the list by locking it from other threads and removing from a
-     * "fresh copy" of the array as not to interrupt operations of other threads.
+     * fresh copy of the array as not to interrupt operations of other threads.
      *
      * @param index of the element to remove.
      * @return the element that was removed from the list.
      * @throws IndexOutOfBoundsException if index lies outside the bounds of the list.
      */
     @SuppressWarnings("unchecked")
+    @Override
     public T remove(int index) {
         synchronized (lock) {
-            Object[] newArray = array;
+            Object[] newArray = getArray();
             int length = newArray.length;
             T oldValue = (T) newArray[index];
 
@@ -77,16 +83,18 @@ public class CWA<T> implements Iterable<T> {
                 System.arraycopy(newArray, 0, newElements, 0, index);
                 System.arraycopy(newArray, index + 1, newElements, index, amountMoved);
             }
-            array = newElements;
+
+            setArray(newElements);
             return oldValue;
         }
     }
 
     @Override
     public Iterator<T> iterator() {
-        Object[] newArray = new Object[size()];
-        System.arraycopy(array, 0, newArray, 0, size());
-        return new CWAIterator<>(newArray, 0);
+        //TODO: Is not in accordance with the CopyOnWriteArrayList where getArray() is simple handed to the the iterator instead of a copy.
+        /*Object[] newArray = new Object[size()];
+        System.arraycopy(getArray(), 0, newArray, 0, size() - 1);*/
+        return new CWAIterator<>(getArray(), 0);
     }
 
     private final static class CWAIterator<T> implements Iterator<T> {

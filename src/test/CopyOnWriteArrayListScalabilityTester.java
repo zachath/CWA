@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
+import own.CWA;
 
 /**
  * Function:    Tests the throughput of the CopyOnWriteArrayList with varying set of work, operations and resources.
@@ -18,7 +18,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class CopyOnWriteArrayListScalabilityTester {
 
     //The data structure to be used throughout the test.
-    private static CopyOnWriteArrayList<Integer> CWA = new CopyOnWriteArrayList<>();
+    private static CWA<Integer> CWA = new CWA<>();
 
     //Runtime of tests (10 seconds).
     private final static int runTime = 10000;
@@ -120,16 +120,16 @@ public class CopyOnWriteArrayListScalabilityTester {
     }
 
     /**
-     * Resets the tests by creating a new instance of the CWA, calling garbage collection.
+     * Resets the tests by creating a new instance of the own.CWA, calling garbage collection.
      */
     private static void resetDataStructure() {
-        CWA = new CopyOnWriteArrayList<>();
+        CWA = new CWA<>();
         System.gc();
     }
 
     /**
      * Runs as many tests specified by the testIterations variable.
-     * The CWA is populated with as many elements as specified,
+     * The own.CWA is populated with as many elements as specified,
      * then workers and threads are created then started.
      * They run for runTime milliseconds before the testIsFinished flag is set
      * to false and the threads terminate. The amount of totalOperations is tallied up and
@@ -224,12 +224,18 @@ public class CopyOnWriteArrayListScalabilityTester {
         }
 
         /**
-         * Iterates through the CWA without doing anything,
+         * Iterates through the own.CWA without doing anything,
          * to avoid dead code elimination the hashcode of i is compared to
          * the current time.
          */
         private void iterate() {
             for (Integer i : CWA) {
+                if (i == null) {
+                    System.out.println(CWA.size());
+                    System.out.println("First: " + CWA.get(0));
+                    System.out.println("Last: " + CWA.get(CWA.size() - 1));
+                    System.exit(0);
+                }
                 //Dead code elimination as per Goetz et. al 2006
                 if (i.hashCode() == System.nanoTime()) {
                     System.out.print(" ");
