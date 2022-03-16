@@ -1,9 +1,11 @@
 package own;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public class CopyOnWriteArrayListTesting {
-    //private static final CopyOnWriteArrayList<String> own.CWA = new CopyOnWriteArrayList<>();
-    //private static final own.CWA<String> own.CWA = new own.CWA<>();
-    private static final CWALocks<String> CWA = new CWALocks<>();
+    private static final CopyOnWriteArrayList<String> CWA = new CopyOnWriteArrayList<>();
+    //private static final own.CWA<String> CWA = new own.CWA<>();
+    //private static final EntireCWA<String> CWA = new EntireCWA<>();
 
     public static void add(int amount) {
         System.out.println("Adding");
