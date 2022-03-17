@@ -3,33 +3,32 @@ package own;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CopyOnWriteArrayListTesting {
-    private static final CopyOnWriteArrayList<String> CWA = new CopyOnWriteArrayList<>();
+    //private static final CopyOnWriteArrayList<String> CWA = new CopyOnWriteArrayList<>();
     //private static final own.CWA<String> CWA = new own.CWA<>();
-    //private static final EntireCWA<String> CWA = new EntireCWA<>();
+    private static final own.CWANoCopy<Integer> CWA = new CWANoCopy<>();
 
     public static void add(int amount) {
         System.out.println("Adding");
-        for (int i = 0; i < amount; i++) {
-            CWA.add("Element: " + (CWA.size() + 1));
-        }
+        for (Integer i : CWA) {CWA.add(CWA.size() + 1);}
+
+        //for (int i = 0; i < amount; i++) {CWA.add(CWA.size() + 1);} //Med own.CWA så verkar addering ske innan itereringen börjar
+        System.out.println("done - add");
     }
 
     public static void iterate() {
         System.out.println("Iterating");
-        for (String s : CWA) {
-            System.out.println(s);
+        for (Integer i : CWA) {
+            System.out.println(i);
         }
+        System.out.println("done - iter");
     }
 
     public static void main(String[] args) throws InterruptedException {
-        //Körde med 100 och då printade den första interationen 55 element, så det är timing.
         Thread addingThread = new Thread(() -> add(10));
         Thread iteratingThread = new Thread(CopyOnWriteArrayListTesting::iterate);
 
-        double start = System.nanoTime();
-
         for (int i = 0; i < 5; i++) {
-            CWA.add("Element: " + CWA.size());
+            CWA.add(CWA.size());
         }
 
         iteratingThread.start();
@@ -43,7 +42,5 @@ public class CopyOnWriteArrayListTesting {
         Thread finalThread = new Thread(CopyOnWriteArrayListTesting::iterate);
         finalThread.start();
         finalThread.join();
-
-        //System.out.println((System.nanoTime() - start) / 1.0E9);
     }
 }

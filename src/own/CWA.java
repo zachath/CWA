@@ -48,11 +48,11 @@ public class CWA<T> implements CWASubset<T> {
     @Override
     public boolean add(T element) {
         synchronized (lock) {
-            Object[] es = getArray();
-            int len = es.length;
-            es = Arrays.copyOf(es, len + 1);
-            es[len] = element;
-            setArray(es);
+            Object[] copy = getArray();
+            int len = copy.length;
+            copy = Arrays.copyOf(copy, len + 1);
+            copy[len] = element;
+            setArray(copy);
             return true;
         }
     }
@@ -69,19 +69,19 @@ public class CWA<T> implements CWASubset<T> {
     @Override
     public T remove(int index) {
         synchronized (lock) {
-            Object[] newArray = getArray();
-            int length = newArray.length;
-            T oldValue = (T) newArray[index];
+            Object[] copy = getArray();
+            int length = copy.length;
+            T oldValue = (T) copy[index];
 
             int amountMoved = length - index - 1;
             Object[] newElements;
             if (amountMoved == 0) {
-                newElements = Arrays.copyOf(newArray, length - 1);
+                newElements = Arrays.copyOf(copy, length - 1);
             }
             else {
                 newElements = new Object[length - 1];
-                System.arraycopy(newArray, 0, newElements, 0, index);
-                System.arraycopy(newArray, index + 1, newElements, index, amountMoved);
+                System.arraycopy(copy, 0, newElements, 0, index);
+                System.arraycopy(copy, index + 1, newElements, index, amountMoved);
             }
 
             setArray(newElements);
@@ -91,9 +91,6 @@ public class CWA<T> implements CWASubset<T> {
 
     @Override
     public Iterator<T> iterator() {
-        //TODO: Is not in accordance with the CopyOnWriteArrayList where getArray() is simple handed to the the iterator instead of a copy.
-        /*Object[] newArray = new Object[size()];
-        System.arraycopy(getArray(), 0, newArray, 0, size() - 1);*/
         return new CWAIterator<>(getArray(), 0);
     }
 

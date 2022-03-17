@@ -65,10 +65,7 @@ public class CWALocks<T> implements CWASubset<T> {
 
     @Override
     public Iterator<T> iterator() {
-        //TODO: Is not in accordance with the CopyOnWriteArrayList where getArray() is simple handed to the the iterator instead of a copy.
-        Object[] newArray = new Object[size()];
-        System.arraycopy(getArray(), 0, newArray, 0, size());
-        return new CWALocksIterator<>(newArray, 0);
+        return new CWALocksIterator<>(getArray(), 0);
     }
 
     private final static class CWALocksIterator<T> implements Iterator<T> {
