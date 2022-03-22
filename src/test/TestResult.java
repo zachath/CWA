@@ -2,22 +2,14 @@
 
 package test;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * Container class for the results of tests.
  */
 public class TestResult implements Comparable<TestResult> {
-    public final int totalOperations, threadCount, elementCount, lookupPercentage, iterationPercentage, addPercentage, removePercentage;
-    public final long throughput;
+    public final int threadCount, elementCount, lookupPercentage, iterationPercentage, addPercentage, removePercentage;
+    public final double throughput, totalOperations;
 
-    public TestResult(int totalOperations, long totalTime, int threadCount, int elementCount, int lookupPercentage, int iterationPercentage, int addPercentage, int removePercentage) {
+    public TestResult(double totalOperations, double totalTime, int threadCount, int elementCount, int lookupPercentage, int iterationPercentage, int addPercentage, int removePercentage) {
         this.totalOperations = totalOperations;
         this.threadCount = threadCount;
         this.elementCount = elementCount;
@@ -30,6 +22,6 @@ public class TestResult implements Comparable<TestResult> {
 
     @Override
     public int compareTo(TestResult other) {
-        return Long.compare(this.throughput, other.throughput);
+        return Double.compare(this.throughput, other.throughput);
     }
 }

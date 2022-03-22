@@ -2,11 +2,12 @@
 //Based on the test program by Emterfors and Sander.
 package test;
 
+import own.CWA;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import own.CWA;
 
 /**
  * Function:    Tests the throughput of the CopyOnWriteArrayList with varying set of work, operations and resources.
@@ -123,6 +124,7 @@ public class CopyOnWriteArrayListScalabilityTester {
      * Resets the tests by creating a new instance of the own.CWA, calling garbage collection.
      */
     private static void resetDataStructure() {
+        sleep = true;
         CWA = new CWA<>();
         System.gc();
     }
@@ -142,7 +144,7 @@ public class CopyOnWriteArrayListScalabilityTester {
                 System.out.println("Test " + i);
             }
 
-            int totalOperations = 0;
+            double totalOperations = 0;
 
             for (int j = 0; j < numberOfElements; j++) {
                 CWA.add(j);
@@ -163,26 +165,28 @@ public class CopyOnWriteArrayListScalabilityTester {
                 thread.start();
             }
 
-            try {
-                Thread.sleep(runTime);
-                for (Thread thread : threads) {
-                    thread.interrupt();
-                }
+            new Thread(new Sleeper(runTime)).start();
 
-                //Prevent possible timing error.
-                for (Thread thread : threads) {
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            while (sleep) {
+                if (CWA.size() == 1) {
+                    break;
                 }
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
 
-            long totalTime = (long) ((System.nanoTime() - startTime) / 1.0E9);
+            for (Thread thread : threads) {
+                thread.interrupt();
+            }
+
+            //Prevent possible timing error.
+            for (Thread thread : threads) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            double totalTime = (System.nanoTime() - startTime) / 1.0E9; //second
 
             for (Worker worker : workers) {
                 totalOperations += worker.totalOperations;
@@ -192,7 +196,10 @@ public class CopyOnWriteArrayListScalabilityTester {
                 System.out.println("Test " + i + " Complete");
             }
 
-            testResults.add(new TestResult(totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
+            //Only create a test result if not warmup.
+            if (!warmUp) {
+                testResults.add(new TestResult(totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
+            }
 
             resetDataStructure();
             threads.clear();
@@ -202,6 +209,25 @@ public class CopyOnWriteArrayListScalabilityTester {
         if (!warmUp) {
             CSVCreator csvCreator = new CSVCreator(dirName, fileName, testResults);
             csvCreator.createCSV();
+        }
+    }
+
+    volatile static boolean sleep = true;
+
+    private static class Sleeper implements Runnable {
+        final int time;
+        public Sleeper(int time) {
+            this.time = time;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(time);
+                sleep = false;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -256,25 +282,34 @@ public class CopyOnWriteArrayListScalabilityTester {
                 //Iterates through the list using modulus.
                 Operations operation = operations.get(totalOperations % operations.size());
 
-                int randomValue = random.nextInt(CWA.size() / 2);
+                int randomValue;
+                try {
+                    randomValue = random.nextInt(CWA.size() / 2);
+                } catch (IllegalArgumentException e) {
+                    break;
+                }
 
                 if (operation == Operations.LOOKUP) {
                     lookup(randomValue);
+                    totalOperations++;
                 }
                 else if (operation == Operations.ADD) {
                     CWA.add(randomValue);
+                    totalOperations++;
                 }
                 else if (operation == Operations.REMOVE) {
-                    CWA.remove(randomValue);
+                    try {
+                        CWA.remove(randomValue);
+                        totalOperations++;
+                    } catch (Exception ignored) {}
                 }
                 else if (operation == Operations.ITERATE) {
                     iterate();
+                    totalOperations++;
                 }
                 else {
                     throw new RuntimeException("Unsupported Operation");
                 }
-
-                totalOperations++;
             }
         }
     }
