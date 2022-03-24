@@ -63,7 +63,6 @@ public class CSVCreator {
             builder.append("Remove Percentage");
             builder.append("\n");
 
-            int i = 0;
             for (TestResult result : resultList) {
                 builder.append(result.threadCount).append(",");
                 builder.append(result.elementCount).append(",");
@@ -73,7 +72,6 @@ public class CSVCreator {
                 builder.append(result.addPercentage).append(",");
                 builder.append(result.removePercentage);
                 builder.append("\n");
-                i++;
             }
 
             writer.write(builder.toString());

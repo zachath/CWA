@@ -71,7 +71,7 @@ public class CopyOnWriteArrayListScalabilityTester {
             testIterations = Integer.parseInt(args[6]);
             warmupIterations = testIterations / 2;
             dirName = lookupPercentage + "%Look-" + iterationPercentage + "%Iter-" + (addPercentage + removePercentage) + "%Mod-" + numberOfElements + "Elements";
-            fileName = dirName + "-" + numberOfThreads + "Threads";
+            fileName = numberOfThreads < 10 ? dirName + "-0" + numberOfThreads + "Threads" : dirName + "-" + numberOfThreads + "Threads";
 
             if (lookupPercentage + iterationPercentage + addPercentage + removePercentage != 100) {
                 throw new IllegalStateException("Percentages are not correct");
@@ -144,6 +144,7 @@ public class CopyOnWriteArrayListScalabilityTester {
 
             int totalOperations = 0;
 
+            //Populate the data structure.
             for (int j = 0; j < numberOfElements; j++) {
                 CWA.add(j);
             }
@@ -164,26 +165,37 @@ public class CopyOnWriteArrayListScalabilityTester {
             }
 
             try {
+                /*Sleep for the specified time and let the worker-threads execute, then interrupt them.
+                However, .interrupt() is merely a request and does not guarantee immediate shutdown of the thread,
+                therefor the code below is required.*/
                 Thread.sleep(runTime);
                 for (Thread thread : threads) {
                     thread.interrupt();
+                }
+
+                //Prevent possible timing error be ensuring that all threads have terminated before continuing.
+                for (Thread thread : threads) {
+                    thread.join();
                 }
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
+            //Timing using the high granularity of the .nanoTime() and then converting it to seconds by dividing with 10 to the power of -9.
             long totalTime = (long) ((System.nanoTime() - startTime) / 1.0E9);
 
+            //Summing the operations across all threads.
             for (Worker worker : workers) {
                 totalOperations += worker.totalOperations;
             }
 
             if (!warmUp) {
                 System.out.println("Test " + i + " Complete");
-            }
 
-            testResults.add(new TestResult(totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
+                //Only create a test result if not a warmup iteration.
+                testResults.add(new TestResult(totalOperations, totalTime, numberOfThreads, numberOfElements, lookupPercentage, iterationPercentage, addPercentage, removePercentage));
+            }
 
             resetDataStructure();
             threads.clear();
